@@ -55,22 +55,33 @@ const MainPage=()=>{
 
 
     //this function will run the model 
-    const runModel=()=>{
+    const runModel=async()=>{
         setLoading(true)
-        //send text to Python backend
-        //retrieve results through api call
-        //filter and format
-        //set loading to false
-        setTimeout(()=>{    //timeout is temporary just simulating waiting for the backend to return
-            setLoading(false)
-            setCompletion(true)
-            //set perecentages
-            setvPercent(["1", "2"])
-            setrPercent(["3", "4"])
-            setneiPercent(["5", 6])
-            setPercent([30, 25])
+        try{
+            const response= await fetch("http://127.0.0.1:8000/predict",{
+                method:"POST",
+                headers:{
+                    "Content-Type":"application/json"
+                },
+                body: JSON.stringify({
+                    text:text,
+                    model:model
+                })
+            });
+            const data= await response.json();
 
-        }, 5000)
+            //We will now update the values of the percentage
+            setvPercent(data.vPercent);
+            setrPercent(data.rPercent);
+            setneiPercent(data.neiPercent);
+            setPercent(data.percent);
+            setCompletion(true);
+            
+        } catch (error){
+            console.error("Backend error", error);
+        } finally {
+            setLoading(false);
+        }
     
     }
 
@@ -83,7 +94,7 @@ const MainPage=()=>{
         <div>
         <div class="text-white bg-[#eeebe4]  h-[150vh] md:h-[75vh] flex flex-col md:flex-row rounded-3xl w-9/10 m-auto mb-4">
             <div class="h-1/2 md:h-full md:w-1/2 p-5 flex flex-col">
-                <textarea onChange={(e)=>countWords(e.target.value)} class="text-black placeholder-[#92999a] h-[93%] w-full outline-0 p-1 resize-none" placeholder='Paste your test here' name="" id="myText"></textarea>
+                <textarea onChange={(e)=>{setText(e.target.value);countWords(e.target.value)}} class="text-black placeholder-[#92999a] h-[93%] w-full outline-0 p-1 resize-none" placeholder='Paste your test here' name="" id="myText"></textarea>
                 <div class="flex justify-between items-center">
                     <div class=""><button onClick={runModel} class=" bg-[#24afda] hover:bg-[#7ad7f3] shadow-lg shadow-indigo-500/50 rounded-xl w-15 h-8 text-[#eeebe4] mt-2">Scan</button></div>
                     <div class="text-[#92999a]">{wordCount}/600</div>
@@ -105,7 +116,7 @@ const MainPage=()=>{
                                 <div>BERTa</div>
                             </div> 
                         </button>
-                        <button onClick={()=>setModel("distillbert")} class={`${model==="distillbert" && "bg-[#E5D9F2]"} p-3 rounded-4xl w-1/2 h-full`}>
+                        <button onClick={()=>setModel("distilbert")} class={`${model==="distilbert" && "bg-[#E5D9F2]"} p-3 rounded-4xl w-1/2 h-full`}>
                             <div class="flex justify-center items-center ">
                                 <img class="w-6 " src="/images/letter-d.png" alt="" />
                                 <div class="ml-0 ">istillBERT</div>
@@ -131,7 +142,7 @@ const MainPage=()=>{
                                 stroke-width="20"
                                 stroke-linecap="round"
                                 stroke-dasharray="251"
-                                stroke-dashoffset={251-((251/100)*percent[1])}
+                                stroke-dashoffset={251-((251/100)*percent[model==="roberta"? 0:1])}
                             />
                         </svg>
 
