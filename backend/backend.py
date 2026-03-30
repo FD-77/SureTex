@@ -5,15 +5,12 @@ import json
 import pandas as pd
 from sentence_transformers import CrossEncoder
 
-<<<<<<< HEAD
 
 
 #Seet up connection and API here
 
 
 
-=======
->>>>>>> 791193f (My changes)
 input="Get from front end"
 df=[]
 sentences=re.split(r"(?<=\.)\s|\n", input)

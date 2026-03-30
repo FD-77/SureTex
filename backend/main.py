@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from Models import run_roberta,run_distilbert
+from Models import run_distilbert, run_roberta
 from transformers import AutoTokenizer, AutoModel
 from transformers import AutoModelForSequenceClassification
 from transformers import Trainer, TrainingArguments
@@ -26,16 +26,12 @@ class InputText(BaseModel):
     model:str
 @app.post("/predict")
 def begin(input:InputText):
+    
     if input.model=="roberta":
+        print("Placeholder until we have roberta model")
         result=run_roberta(input.text)
     elif input.model=="distilbert":
+        print("DistilBERT Model")
         result=run_distilbert(input.text)
-    text= input.text
-    result = run_model(text)
-    return {"message":"We will now start the operations"}
 
-
-
-@app.get("/2")
-def ending():
-    return {"message":"We are done in the backend"}
+    return result
