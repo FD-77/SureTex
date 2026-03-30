@@ -14,19 +14,24 @@ const MainPage=()=>{
     const [notEI, setnotEI]=useState("--")
     const [testedText, setTestedText]=useState(["map1", "map2"])
     const [percent, setPercent]=useState([12, 25])
+    const index = model === "roberta" ? 0:1;
+    const real_fake_model= model ==="distilbert"
+    const gauge = real_fake_model ? verifiable : percent[index];
 
     useEffect(() => {
-        if (model==="roberta"){
-            setVerifiable(vPercent[0]);
-            setRefutes(rPercent[0]);
-            setnotEI(neiPercent[0]);
+        const real= parseFloat(vPercent[index])|| 0;
+        const fake = parseFloat(rPercent[index]) || 0;
+        if(real_fake_model){
+            setVerifiable(real);
+            setRefutes(fake);
+            setnotEI(0);
         }
         else{
-            setVerifiable(vPercent[1]);
-            setRefutes(rPercent[1]);
-            setnotEI(neiPercent[1]);
+            setVerifiable(vPercent[index]);
+            setRefutes(rPercent[index]);
+            setnotEI(neiPercent[index]);
         }
-    }, [model, vPercent])
+    }, [model, vPercent, rPercent,neiPercent])
 
     const labeledSentences = [
         {sentence: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.", label: "REFUTES"},
@@ -124,7 +129,7 @@ const MainPage=()=>{
                         </button>
                     </div>
         
-                    <div class="text-2xl">{verifiable}% of this text appears to be verifiable</div>
+                    <div class="text-2xl">{real_fake_model ? `${verifiable}% chance this text is real` : `${verifiable}% of this text appears to be verifiable`}</div>
                     <div class="relative w-64 h-40 flex items-center justify-center">
                         <svg viewBox="0 0 200 120" class="w-full">
                             <path
@@ -142,7 +147,7 @@ const MainPage=()=>{
                                 stroke-width="20"
                                 stroke-linecap="round"
                                 stroke-dasharray="251"
-                                stroke-dashoffset={251-((251/100)*percent[model==="roberta"? 0:1])}
+                                stroke-dashoffset={251-((251/100)* gauge)}
                             />
                         </svg>
 
@@ -151,17 +156,19 @@ const MainPage=()=>{
 
                     <div class="text-lg w-[70%] flex flex-col gap-3">
                         <div class="flex items-center justify-between"> 
-                            <div class="flex items-center"><FaCircle class="mr-2 text-[#32c999] size-7  "></FaCircle> Supports</div> 
+                            <div class="flex items-center"><FaCircle class="mr-2 text-[#32c999] size-7  "></FaCircle> {real_fake_model ? "Real" : "Supports"}</div> 
                             <div>{verifiable}%</div>
                         </div>
                         <div class="flex items-center justify-between"> 
-                            <div class="flex items-center"><FaCircle class="mr-2 text-[#f54d4d] size-7"></FaCircle> Refutes</div> 
+                            <div class="flex items-center"><FaCircle class="mr-2 text-[#f54d4d] size-7"></FaCircle> {real_fake_model ? "Fake": "Refutes"}</div> 
                             <div>{refutes}%</div>
                         </div>
+                        {!real_fake_model &&(
                         <div class="flex items-center justify-between"> 
                             <div class="flex items-center"><FaCircle class="mr-2 text-[#f0bf1b] size-7"></FaCircle> Not Enough Info</div> 
                             <div>{notEI}%</div>
                         </div>
+                        )}
                     </div>
                 </>}    
 
