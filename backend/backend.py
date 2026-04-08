@@ -7,10 +7,10 @@ from sentence_transformers import CrossEncoder
 
 #Set up connection and API here
 
-input="Get from front end"
+
 df=[]
-def getEvidence(sentences, opinionOption): 
-    sentences=re.split(r"(?<=\.)\s|\n", input)
+def getEvidence(article, opinionOption): 
+    sentences=re.split(r"(?<=\.)\s|\n", article)
     for sentence in sentences:
         if sentence!='':
             df.append({"Claim": sentence})
@@ -46,7 +46,7 @@ def getEvidence(sentences, opinionOption):
             evidence=""
         i=0;
         ev=[]
-        while (i<=2):
+        while (i<=2 and evidence):
             for f in evidence:
                 try:
                     text=r["query"]["pages"][f]["extract"]

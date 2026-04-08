@@ -1,7 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from Models import run_distilbert, run_roberta
+from backend import getEvidence
+from distilbert import run_distilbert
+from RoBERTa import run_roberta
 from transformers import AutoTokenizer, AutoModel
 from transformers import AutoModelForSequenceClassification
 from transformers import Trainer, TrainingArguments
@@ -29,7 +31,22 @@ def begin(input:InputText):
     
     if input.model=="roberta":
         print("Placeholder until we have roberta model")
-        result=run_roberta(input.text)
+        evidence= getEvidence(input.text)
+        results=[]
+        for _,row in evidence.iterrows():
+            single_claim= row["Claim"]
+            evidence_list=row["Evidence"]
+            if not evidence_list:
+                prediction= {"SUPPORTS":0,"REFUTES":0, "NEI":100}
+            else:
+                total_evidence=" ".join(evidence_list)
+                prediction= run_roberta(single_claim,total_evidence)
+            results.append({
+                "claim":single_claim,
+                "evidence":evidence_list,
+                "prediction":prediction
+            })
+        result=results
     elif input.model=="distilbert":
         print("DistilBERT Model")
         result=run_distilbert(input.text)
