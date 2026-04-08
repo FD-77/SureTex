@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from backend import get_evidence
+from backend import getEvidence
 from distilbert import run_distilbert
 from RoBERTa import run_roberta
 from transformers import AutoTokenizer, AutoModel
@@ -31,7 +31,7 @@ def begin(input:InputText):
     
     if input.model=="roberta":
         print("Placeholder until we have roberta model")
-        evidence= get_evidence(input.text)
+        evidence= getEvidence(input.text)
         results=[]
         for _,row in evidence.iterrows():
             single_claim= row["Claim"]
