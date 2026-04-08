@@ -11,7 +11,10 @@ function App(){
 }
 export default App
 
-
-//LEFT TODO: 
-// Fix the lines on arc
+// LEFT TODO for me(Fatoumata): 
 // Maybe add all 3 percentages for arc
+// Add a info button
+// Implement opinion option on backend
+// make more mobile friendly
+// Edit loading card to either loading image or more words
+// 
