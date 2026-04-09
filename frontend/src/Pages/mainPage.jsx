@@ -19,7 +19,7 @@ const MainPage=()=>{
     const index = model === "roberta" ? 0:1;
     const real_fake_model= model ==="distilbert"
     const gauge = real_fake_model ? verifiable : (percent && percent[index]) || 0;
-
+    const [details,setDetails]=useState([]);
     useEffect(() => {
         const real= parseFloat(vPercent?.[index])|| 0;
         const fake = parseFloat(rPercent?.[index]) || 0;
@@ -35,33 +35,9 @@ const MainPage=()=>{
         }
     }, [model, vPercent, rPercent,neiPercent])
 
-    const labeledSentences = [
-        {sentence: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.", label: "REFUTES"},
-        {sentence: "Curabitur mi ipsum, auctor ac posuere sit amet, mattis nec sapien.", label: "SUPPORTS"},
-        {sentence: "Suspendisse pulvinar venenatis dolor eu iaculis.", label: "NOT ENOUGH INFO"},
-        {sentence: "Maecenas rhoncus, sem ac suscipit vulputate, ipsum ex dictum elit, sit amet aliquam quam nulla vitae ante.", label: "SUPPORTS"},
-        {sentence: "Aliquam luctus, turpis vitae fringilla lacinia, nisi lorem congue nunc, non venenatis turpis ante vitae ex.", label: "REFUTES"},
-        {sentence: "Maecenas in leo ipsum.", label: "NOT ENOUGH INFO"},
-        {sentence: "Nulla at libero ac lacus consectetur vehicula.", label: "SUPPORTS"},
-        {sentence: "Phasellus convallis sollicitudin ligula nec ornare.", label: "REFUTES"},
-        {sentence: "Ut consequat elit massa, id egestas metus suscipit eu.", label: "NOT ENOUGH INFO"},
-        {sentence: "Mauris vestibulum pharetra lectus vel venenatis.", label: "SUPPORTS"},
-        {sentence: "Nam erat ante, cursus et justo ut, vulputate commodo neque.", label: "REFUTES"},
-        {sentence: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.", label: "REFUTES"},
-        {sentence: "Curabitur mi ipsum, auctor ac posuere sit amet, mattis nec sapien.", label: "SUPPORTS"},
-        {sentence: "Suspendisse pulvinar venenatis dolor eu iaculis.", label: "NOT ENOUGH INFO"},
-        {sentence: "Maecenas rhoncus, sem ac suscipit vulputate, ipsum ex dictum elit, sit amet aliquam quam nulla vitae ante.", label: "SUPPORTS"},
-        {sentence: "Aliquam luctus, turpis vitae fringilla lacinia, nisi lorem congue nunc, non venenatis turpis ante vitae ex.", label: "REFUTES"},
-        {sentence: "Maecenas in leo ipsum.", label: "NOT ENOUGH INFO"},
-        {sentence: "Nulla at libero ac lacus consectetur vehicula.", label: "SUPPORTS"},
-        {sentence: "Phasellus convallis sollicitudin ligula nec ornare.", label: "REFUTES"},
-        {sentence: "Ut consequat elit massa, id egestas metus suscipit eu.", label: "NOT ENOUGH INFO"},
-        {sentence: "Mauris vestibulum pharetra lectus vel venenatis.", label: "SUPPORTS"},
-        {sentence: "Nam erat ante, cursus et justo ut, vulputate commodo neque.", label: "REFUTES"}
-    ];
-
     //this function will run the model 
     const runModel=async()=>{
+        
         setLoading(true)
         try{
             const response= await fetch("http://127.0.0.1:8000/predict",{
@@ -81,6 +57,7 @@ const MainPage=()=>{
             setrPercent(data.rPercent || [0,0]);
             setneiPercent(data.neiPercent || [0,0]);
             setPercent(data.percent || [0,0]);
+            setDetails(data.details || [])
             setCompletion(true);
             
         } catch (error){
@@ -88,6 +65,17 @@ const MainPage=()=>{
         } finally {
             setLoading(false);
         }
+    }
+    const getinfo = (prediction) =>{
+        if(!prediction) return "Not Enough Information";
+        const{supports,refutes,nei}=prediction;
+        if(supports >= refutes && supports>=nei){
+            return "Supports";
+        }
+        if(refutes >= supports && refutes >= nei){
+            return "Refutes";
+        }
+        return "Not Enough Information";
     }
 
     const countWords=(e)=>{
@@ -202,9 +190,14 @@ const MainPage=()=>{
             <div class="flex flex-col justify-center items-center gap-5">
                 <div class="text-3xl font-bold text-[#24afda] ">Verification Analysis</div>
                 <div>
-                {labeledSentences.map((s, index)=>(
-                    <span class={` ${s.label=="SUPPORTS" && "bg-[#32c99945]" || s.label=="REFUTES" && "bg-[#f54d4d40]" || s.label=="NOT ENOUGH INFO" && "bg-[#f3e84e64]"}` } key={index}>{s.sentence} </span>
-                ))}
+                {details.map((item,index) =>{
+                    const label = getinfo(item.prediction);
+                    return(
+                        <div key={index} className="mb-4">
+                            <span className={label ==="Supports" ? "bg-[#32c99945]" : label ==="Refutes" ? "bg-[#f54d4d40]" : "bg-[#f3e84e64]"}>{item.claim}</span>
+                        </div>);
+                            }
+                )}
                 </div>
             </div>
         </div>
