@@ -18,11 +18,11 @@ const MainPage=()=>{
     const [includeOpinion, setOpinionOption]= useState(false)
     const index = model === "roberta" ? 0:1;
     const real_fake_model= model ==="distilbert"
-    const gauge = real_fake_model ? verifiable : percent[index];
+    const gauge = real_fake_model ? verifiable : (percent && percent[index]) || 0;
 
     useEffect(() => {
-        const real= parseFloat(vPercent[index])|| 0;
-        const fake = parseFloat(rPercent[index]) || 0;
+        const real= parseFloat(vPercent?.[index])|| 0;
+        const fake = parseFloat(rPercent?.[index]) || 0;
         if(real_fake_model){
             setVerifiable(real);
             setRefutes(fake);
@@ -77,10 +77,10 @@ const MainPage=()=>{
             const data= await response.json();
 
             //We will now update the values of the percentage
-            setvPercent(data.vPercent);
-            setrPercent(data.rPercent);
-            setneiPercent(data.neiPercent);
-            setPercent(data.percent);
+            setvPercent(data.vPercent || [0,0]);
+            setrPercent(data.rPercent || [0,0]);
+            setneiPercent(data.neiPercent || [0,0]);
+            setPercent(data.percent || [0,0]);
             setCompletion(true);
             
         } catch (error){

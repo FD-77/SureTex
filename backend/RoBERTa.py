@@ -88,9 +88,9 @@ def run_roberta(claim, evidence):
     with torch.no_grad():
         outputs=evidence_model(**inputs)
     logits=outputs.logits
-    probs= F.softmax(logits,dim=1)
-    probs=probs.tolist()[0]
-    return [round(probs[0] * 100, 2),  # SUPPORTS
-    round(probs[1] * 100, 2),  # REFUTES
-    round(probs[2] * 100, 2)   # NEI
-    ]
+    probs= F.softmax(logits,dim=1)[0]
+    return {
+    "supports": probs[0].item(),  # SUPPORTS
+    "refutes": probs[1].item(),  # REFUTES
+    "nei": probs[2].item()   # NEI
+    }

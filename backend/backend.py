@@ -8,8 +8,10 @@ from sentence_transformers import CrossEncoder
 #Set up connection and API here
 
 
-df=[]
+#df=[]
 def getEvidence(article, opinionOption): 
+    
+    df=[]
     sentences=re.split(r"(?<=\.)\s|\n", article)
     for sentence in sentences:
         if sentence!='':
