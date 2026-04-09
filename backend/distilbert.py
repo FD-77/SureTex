@@ -63,12 +63,9 @@ def run_distilbert(text):
     with torch.no_grad():
         outputs=News_model(**inputs)
     logits=outputs.logits
-    probs= F.softmax(logits,dim=1)
-    probs=probs.tolist()[0]
-    real = round(probs[1] * 100, 2)
-    fake = round(probs[0] * 100, 2)
-    return {"vPercent": [real, real],     #REAL:"verifiable"
-        "rPercent": [fake, fake],     # FAKE""refutes"
-        "neiPercent": [0, 0],         # no NEI
-        "percent": [real, fake]    
+    probs= F.softmax(logits,dim=1)[0]
+    real = probs[1].item()
+    fake = probs[0].item()
+    return {"real": real,     #REAL:"verifiable"
+        "fake": fake,     # FAKE""refutes"  
 }
