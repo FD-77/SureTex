@@ -76,5 +76,6 @@ def begin(input:InputText):
         "vPercent": vPercent,     #REAL:"verifiable"
         "rPercent": rPercent,     # FAKE""refutes"
         "neiPercent": neiPercent,         # no NEI
-        "percent": percent
+        "percent": percent,
+        "details":results
     }
