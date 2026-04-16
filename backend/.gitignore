@@ -4,3 +4,4 @@ Model_2_results/
 News_results/
 evidence_results/
 Two_head_results/
+TwoTask_single_session_FT2_CPU.pt
