@@ -1,4 +1,4 @@
-from transformers import (AutoTokenizer, AutoModel,AutoModelForSequenceClassification,
+distilBERT2_head.pyfrom transformers import (AutoTokenizer, AutoModel,AutoModelForSequenceClassification,
     Trainer, TrainingArguments)
 import torch.nn as nn
 import torch
