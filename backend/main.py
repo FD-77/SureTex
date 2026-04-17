@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from backend import getEvidence
-from distilbert import run_distilbert
+from distilBERT2_head import run_distilbert
 from RoBERTa import run_roberta
 from transformers import AutoTokenizer, AutoModel
 from transformers import AutoModelForSequenceClassification
@@ -58,6 +58,7 @@ def begin(input:InputText):
                 "evidence":evidence_list,
                 "prediction":prediction
             })
+            print("Predictions: ",prediction)
         if count >0:
             vPercent[0]= round((total_s/count) * 100,2)
             rPercent[0]=round((total_r/count) * 100, 2)
@@ -67,6 +68,7 @@ def begin(input:InputText):
     elif input.model=="distilbert":
         print("DistilBERT Model")
         result=run_distilbert(input.text)
+        print("Results: ")
         vPercent[1]= round((result["real"]) * 100,2)
         rPercent[1]=round((result["fake"]) * 100, 2)
         neiPercent[1]=0

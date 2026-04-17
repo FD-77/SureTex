@@ -40,7 +40,7 @@ def getEvidence(article, opinionOption):
             "exintro": "1",
             "explaintext": "1",
             "format": "json",
-            "exlimit": "3"
+            "exlimit": "10"
         }
         r=requests.get(url, params=PARAMS, headers=headers).json()
         try:

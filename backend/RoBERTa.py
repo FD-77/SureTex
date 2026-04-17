@@ -9,9 +9,9 @@ import torch
 from datasets import load_dataset
 
 device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
-
-evidence_model= AutoModelForSequenceClassification.from_pretrained("./Model_8")
-evidence_tokenizer=AutoTokenizer.from_pretrained("./Model_8")
+model_id="MisaelProfessional/Robert_evidence"
+evidence_model= AutoModelForSequenceClassification.from_pretrained(model_id)
+evidence_tokenizer=AutoTokenizer.from_pretrained(model_id)
 evidence_model.to(device)
 #you would place the name of the model here
 
