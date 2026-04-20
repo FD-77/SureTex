@@ -18,7 +18,7 @@ const MainPage=()=>{
     const [includeOpinion, setOpinionOption]= useState(false)
     const index = model === "roberta" ? 0:1;
     const real_fake_model= model ==="distilbert"
-    const gauge = real_fake_model ? verifiable : (percent && percent[index]) || 0;
+    const gauge = real_fake_model ? (verifiable > refutes ? verifiable : refutes) : (percent[index] > rPercent[index] ? percent[index] : rPercent[index]) || 0;
     const [details,setDetails]=useState([]);
     useEffect(() => {
         const real= parseFloat(vPercent?.[index])|| 0;
@@ -137,7 +137,7 @@ const MainPage=()=>{
                         </button>
                     </div>
         
-                    <div class="text-2xl">{real_fake_model ? `${verifiable}% chance this text is real` : `${verifiable}% of this text appears to be verifiable`}</div>
+                    <div class="text-2xl">{real_fake_model ? (verifiable < refutes ? `${refutes}% chance this text is Fake` : `${verifiable}% chance this text is Real`) : (verifiable < refutes ? `${refutes}% chance this text is Refuted` : `${verifiable}% chance this text is Supported`)}</div>
                     <div class="relative w-64 h-40 flex items-center justify-center">
                         <svg viewBox="0 0 200 120" class="w-full">
                             <path
@@ -151,7 +151,7 @@ const MainPage=()=>{
                             <path
                                 d="M 20 100 A 80 80 0 0 1 180 100"
                                 fill="none"
-                                stroke="#5BA393"
+                                stroke={verifiable > refutes ? "#5BA393" : "#f54d4d"}
                                 stroke-width="20"
                                 stroke-linecap="round"
                                 stroke-dasharray="251"
@@ -159,19 +159,39 @@ const MainPage=()=>{
                             />
                         </svg>
 
-                        <span class="absolute text-4xl font-bold mt-22">{verifiable}%</span>
+                        <span class="absolute text-4xl font-bold mt-22">{gauge}%</span>
                     </div>
 
                     <div class="text-lg w-[70%] flex flex-col gap-3">
+
+                        {!real_fake_model &&
+                        (<>
+                        {verifiable > refutes ? (
                         <div class="flex items-center justify-between"> 
-                            <div class="flex items-center"><FaCircle class="mr-2 text-[#32c999] size-7  "></FaCircle> {real_fake_model ? "Real" : "Supports"}</div> 
+                            <div class="flex items-center"><FaCircle class="mr-2 text-[#32c999] size-7  "></FaCircle>Supports</div> 
                             <div>{verifiable}%</div>
-                        </div>
-                        <div class="flex items-center justify-between"> 
-                            <div class="flex items-center"><FaCircle class="mr-2 text-[#f54d4d] size-7"></FaCircle> {real_fake_model ? "Fake": "Refutes"}</div> 
+                        </div>) :
+                        (<div class="flex items-center justify-between"> 
+                            <div class="flex items-center"><FaCircle class="mr-2 text-[#f54d4d] size-7"></FaCircle>Refutes</div> 
                             <div>{refutes}%</div>
-                        </div>
-                        {!real_fake_model &&(
+                        </div>)}
+                        </>)}
+                        
+
+                        {real_fake_model &&
+                        (<>
+                        {verifiable > refutes ? (
+                        <div class="flex items-center justify-between"> 
+                            <div class="flex items-center"><FaCircle class="mr-2 text-[#32c999] size-7  "></FaCircle>Real</div> 
+                            <div>{verifiable}%</div>
+                        </div>) :
+                        (<div class="flex items-center justify-between"> 
+                            <div class="flex items-center"><FaCircle class="mr-2 text-[#f54d4d] size-7"></FaCircle>Fake</div> 
+                            <div>{refutes}%</div>
+                        </div>)}
+                        </>)}
+
+                        {!real_fake_model && (notEI > 50) && (
                         <div class="flex items-center justify-between"> 
                             <div class="flex items-center"><FaCircle class="mr-2 text-[#f0bf1b] size-7"></FaCircle> Not Enough Info</div> 
                             <div>{notEI}%</div>
