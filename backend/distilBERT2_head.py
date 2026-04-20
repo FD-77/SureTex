@@ -8,8 +8,10 @@ import evaluate
 from sklearn.metrics import confusion_matrix
 from datasets import load_dataset
 import numpy as np
+from huggingface_hub import hf_hub_download
 device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
-checkpoint = torch.load("TwoTask_single_session_FT2_CPU.pt", map_location=device)
+model_path = hf_hub_download(repo_id="MisaelProfessional/Two_head_Model_FT2_CPU", filename="TwoTask_single_session_FT2_CPU.pt")
+checkpoint = torch.load(model_path, map_location=device)
 
 class_weights = checkpoint["class_weights"].to(device)
 class two_TaskModel(nn.Module):
