@@ -6,17 +6,20 @@ import pandas as pd
 from sentence_transformers import CrossEncoder
 
 #Set up connection and API here
-
-input="Get from front end"
-df=[]
-def getEvidence(sentences, opinionOption): 
-    sentences=re.split(r"(?<=\.)\s|\n", input)
+model=CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
+nlp=spacy.load("en_core_web_sm")
+#df=[]
+def getEvidence(article, opinionOption): 
+    
+    df=[]
+    sentences=re.split(r"(?<=\.)\s|\n", article)
     for sentence in sentences:
         if sentence!='':
             df.append({"Claim": sentence})
 
-    nlp=spacy.load("en_core_web_sm")
+    
     for row in df:
+        row["All Extracts"]=[]
         doc=nlp(row["Claim"])
         text=""
         for token in doc:
@@ -37,7 +40,7 @@ def getEvidence(sentences, opinionOption):
             "exintro": "1",
             "explaintext": "1",
             "format": "json",
-            "exlimit": "3"
+            "exlimit": "10"
         }
         r=requests.get(url, params=PARAMS, headers=headers).json()
         try:
@@ -46,7 +49,7 @@ def getEvidence(sentences, opinionOption):
             evidence=""
         i=0;
         ev=[]
-        while (i<=2):
+        while (i<=2 and evidence):
             for f in evidence:
                 try:
                     text=r["query"]["pages"][f]["extract"]
@@ -59,10 +62,13 @@ def getEvidence(sentences, opinionOption):
                     continue
             row["All Extracts"]=[e for e in ev if e!=""]
 
-    model=CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
+    
     for row in df:
         query=row["Claim"]
-        passages=row["All Extracts"]
+        passages=row.get("All Extracts",[])
+        if not passages:
+            row["Evidence"]=[]
+            continue
         ranks=model.rank(query, passages, top_k=3)
         top_sentences=[passages[r["corpus_id"]] for r in ranks]
         row["Evidence"]=top_sentences

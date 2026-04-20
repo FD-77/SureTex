@@ -18,11 +18,11 @@ const MainPage=()=>{
     const [includeOpinion, setOpinionOption]= useState(false)
     const index = model === "roberta" ? 0:1;
     const real_fake_model= model ==="distilbert"
-    const gauge = real_fake_model ? verifiable : percent[index];
-
+    const gauge = real_fake_model ? (verifiable > refutes ? verifiable : refutes) : (percent[index] > rPercent[index] ? percent[index] : rPercent[index]) || 0;
+    const [details,setDetails]=useState([]);
     useEffect(() => {
-        const real= parseFloat(vPercent[index])|| 0;
-        const fake = parseFloat(rPercent[index]) || 0;
+        const real= parseFloat(vPercent?.[index])|| 0;
+        const fake = parseFloat(rPercent?.[index]) || 0;
         if(real_fake_model){
             setVerifiable(real);
             setRefutes(fake);
@@ -35,33 +35,9 @@ const MainPage=()=>{
         }
     }, [model, vPercent, rPercent,neiPercent])
 
-    const labeledSentences = [
-        {sentence: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.", label: "REFUTES"},
-        {sentence: "Curabitur mi ipsum, auctor ac posuere sit amet, mattis nec sapien.", label: "SUPPORTS"},
-        {sentence: "Suspendisse pulvinar venenatis dolor eu iaculis.", label: "NOT ENOUGH INFO"},
-        {sentence: "Maecenas rhoncus, sem ac suscipit vulputate, ipsum ex dictum elit, sit amet aliquam quam nulla vitae ante.", label: "SUPPORTS"},
-        {sentence: "Aliquam luctus, turpis vitae fringilla lacinia, nisi lorem congue nunc, non venenatis turpis ante vitae ex.", label: "REFUTES"},
-        {sentence: "Maecenas in leo ipsum.", label: "NOT ENOUGH INFO"},
-        {sentence: "Nulla at libero ac lacus consectetur vehicula.", label: "SUPPORTS"},
-        {sentence: "Phasellus convallis sollicitudin ligula nec ornare.", label: "REFUTES"},
-        {sentence: "Ut consequat elit massa, id egestas metus suscipit eu.", label: "NOT ENOUGH INFO"},
-        {sentence: "Mauris vestibulum pharetra lectus vel venenatis.", label: "SUPPORTS"},
-        {sentence: "Nam erat ante, cursus et justo ut, vulputate commodo neque.", label: "REFUTES"},
-        {sentence: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.", label: "REFUTES"},
-        {sentence: "Curabitur mi ipsum, auctor ac posuere sit amet, mattis nec sapien.", label: "SUPPORTS"},
-        {sentence: "Suspendisse pulvinar venenatis dolor eu iaculis.", label: "NOT ENOUGH INFO"},
-        {sentence: "Maecenas rhoncus, sem ac suscipit vulputate, ipsum ex dictum elit, sit amet aliquam quam nulla vitae ante.", label: "SUPPORTS"},
-        {sentence: "Aliquam luctus, turpis vitae fringilla lacinia, nisi lorem congue nunc, non venenatis turpis ante vitae ex.", label: "REFUTES"},
-        {sentence: "Maecenas in leo ipsum.", label: "NOT ENOUGH INFO"},
-        {sentence: "Nulla at libero ac lacus consectetur vehicula.", label: "SUPPORTS"},
-        {sentence: "Phasellus convallis sollicitudin ligula nec ornare.", label: "REFUTES"},
-        {sentence: "Ut consequat elit massa, id egestas metus suscipit eu.", label: "NOT ENOUGH INFO"},
-        {sentence: "Mauris vestibulum pharetra lectus vel venenatis.", label: "SUPPORTS"},
-        {sentence: "Nam erat ante, cursus et justo ut, vulputate commodo neque.", label: "REFUTES"}
-    ];
-
     //this function will run the model 
     const runModel=async()=>{
+        
         setLoading(true)
         try{
             const response= await fetch("http://127.0.0.1:8000/predict",{
@@ -77,10 +53,11 @@ const MainPage=()=>{
             const data= await response.json();
 
             //We will now update the values of the percentage
-            setvPercent(data.vPercent);
-            setrPercent(data.rPercent);
-            setneiPercent(data.neiPercent);
-            setPercent(data.percent);
+            setvPercent(data.vPercent || [0,0]);
+            setrPercent(data.rPercent || [0,0]);
+            setneiPercent(data.neiPercent || [0,0]);
+            setPercent(data.percent || [0,0]);
+            setDetails(data.details || [])
             setCompletion(true);
             
         } catch (error){
@@ -88,6 +65,17 @@ const MainPage=()=>{
         } finally {
             setLoading(false);
         }
+    }
+    const getinfo = (prediction) =>{
+        if(!prediction) return "Not Enough Information";
+        const{supports,refutes,nei}=prediction;
+        if(supports >= refutes && supports>=nei){
+            return "Supports";
+        }
+        if(refutes >= supports && refutes >= nei){
+            return "Refutes";
+        }
+        return "Not Enough Information";
     }
 
     const countWords=(e)=>{
@@ -149,7 +137,7 @@ const MainPage=()=>{
                         </button>
                     </div>
         
-                    <div class="text-2xl">{real_fake_model ? `${verifiable}% chance this text is real` : `${verifiable}% of this text appears to be verifiable`}</div>
+                    <div class="text-2xl">{real_fake_model ? (verifiable < refutes ? `${refutes}% chance this text is Fake` : `${verifiable}% chance this text is Real`) : (verifiable < refutes ? `${refutes}% chance this text is Refuted` : `${verifiable}% chance this text is Supported`)}</div>
                     <div class="relative w-64 h-40 flex items-center justify-center">
                         <svg viewBox="0 0 200 120" class="w-full">
                             <path
@@ -163,7 +151,7 @@ const MainPage=()=>{
                             <path
                                 d="M 20 100 A 80 80 0 0 1 180 100"
                                 fill="none"
-                                stroke="#5BA393"
+                                stroke={verifiable > refutes ? "#5BA393" : "#f54d4d"}
                                 stroke-width="20"
                                 stroke-linecap="round"
                                 stroke-dasharray="251"
@@ -171,19 +159,39 @@ const MainPage=()=>{
                             />
                         </svg>
 
-                        <span class="absolute text-4xl font-bold mt-22">{verifiable}%</span>
+                        <span class="absolute text-4xl font-bold mt-22">{gauge}%</span>
                     </div>
 
                     <div class="text-lg w-[70%] flex flex-col gap-3">
+
+                        {!real_fake_model &&
+                        (<>
+                        {verifiable > refutes ? (
                         <div class="flex items-center justify-between"> 
-                            <div class="flex items-center"><FaCircle class="mr-2 text-[#32c999] size-7  "></FaCircle> {real_fake_model ? "Real" : "Supports"}</div> 
+                            <div class="flex items-center"><FaCircle class="mr-2 text-[#32c999] size-7  "></FaCircle>Supports</div> 
                             <div>{verifiable}%</div>
-                        </div>
-                        <div class="flex items-center justify-between"> 
-                            <div class="flex items-center"><FaCircle class="mr-2 text-[#f54d4d] size-7"></FaCircle> {real_fake_model ? "Fake": "Refutes"}</div> 
+                        </div>) :
+                        (<div class="flex items-center justify-between"> 
+                            <div class="flex items-center"><FaCircle class="mr-2 text-[#f54d4d] size-7"></FaCircle>Refutes</div> 
                             <div>{refutes}%</div>
-                        </div>
-                        {!real_fake_model &&(
+                        </div>)}
+                        </>)}
+                        
+
+                        {real_fake_model &&
+                        (<>
+                        {verifiable > refutes ? (
+                        <div class="flex items-center justify-between"> 
+                            <div class="flex items-center"><FaCircle class="mr-2 text-[#32c999] size-7  "></FaCircle>Real</div> 
+                            <div>{verifiable}%</div>
+                        </div>) :
+                        (<div class="flex items-center justify-between"> 
+                            <div class="flex items-center"><FaCircle class="mr-2 text-[#f54d4d] size-7"></FaCircle>Fake</div> 
+                            <div>{refutes}%</div>
+                        </div>)}
+                        </>)}
+
+                        {!real_fake_model && (notEI > 50) && (
                         <div class="flex items-center justify-between"> 
                             <div class="flex items-center"><FaCircle class="mr-2 text-[#f0bf1b] size-7"></FaCircle> Not Enough Info</div> 
                             <div>{notEI}%</div>
@@ -202,9 +210,14 @@ const MainPage=()=>{
             <div class="flex flex-col justify-center items-center gap-5">
                 <div class="text-3xl font-bold text-[#24afda] ">Verification Analysis</div>
                 <div>
-                {labeledSentences.map((s, index)=>(
-                    <span class={` ${s.label=="SUPPORTS" && "bg-[#32c99945]" || s.label=="REFUTES" && "bg-[#f54d4d40]" || s.label=="NOT ENOUGH INFO" && "bg-[#f3e84e64]"}` } key={index}>{s.sentence} </span>
-                ))}
+                {details.map((item,index) =>{
+                    const label = getinfo(item.prediction);
+                    return(
+                        <div key={index} className="mb-4">
+                            <span className={label ==="Supports" ? "bg-[#32c99945]" : label ==="Refutes" ? "bg-[#f54d4d40]" : "bg-[#f3e84e64]"}>{item.claim}</span>
+                        </div>);
+                            }
+                )}
                 </div>
             </div>
         </div>

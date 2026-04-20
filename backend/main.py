@@ -1,7 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from Models import run_distilbert, run_roberta
+from backend import getEvidence
+from distilBERT2_head import run_distilbert
+from RoBERTa import run_roberta
 from transformers import AutoTokenizer, AutoModel
 from transformers import AutoModelForSequenceClassification
 from transformers import Trainer, TrainingArguments
@@ -26,12 +28,56 @@ class InputText(BaseModel):
     model:str
 @app.post("/predict")
 def begin(input:InputText):
-    
+    vPercent=[0,0]
+    rPercent=[0,0]
+    neiPercent=[0,0]
+    percent=[0,0]
+    results=[]
     if input.model=="roberta":
-        print("Placeholder until we have roberta model")
-        result=run_roberta(input.text)
+        print("RoBERTa Model")
+        evidence= getEvidence(input.text,0)
+        total_s=0
+        total_r=0
+        total_nei=0
+        count=0
+        
+        for _,row in evidence.iterrows():
+            single_claim= row["Claim"]
+            evidence_list=row["Evidence"]
+            if not evidence_list:
+                prediction= {"supports":0,"refutes":0, "nei":1}
+            else:
+                total_evidence=" ".join(evidence_list)
+                prediction= run_roberta(single_claim,total_evidence)
+            total_s +=prediction["supports"]
+            total_r += prediction["refutes"]
+            total_nei += prediction["nei"]
+            count+=1
+            results.append({
+                "claim":single_claim,
+                "evidence":evidence_list,
+                "prediction":prediction
+            })
+            print("Predictions: ",prediction)
+        if count >0:
+            vPercent[0]= round((total_s/count) * 100,2)
+            rPercent[0]=round((total_r/count) * 100, 2)
+            neiPercent[0]=round((total_nei/count) * 100, 2)
+            percent[0]= vPercent[0]
+        result=results
     elif input.model=="distilbert":
         print("DistilBERT Model")
         result=run_distilbert(input.text)
+        print("Results: ")
+        vPercent[1]= round((result["real"]) * 100,2)
+        rPercent[1]=round((result["fake"]) * 100, 2)
+        neiPercent[1]=0
+        percent[1]= vPercent[1]
 
-    return result
+    return {
+        "vPercent": vPercent,     #REAL:"verifiable"
+        "rPercent": rPercent,     # FAKE""refutes"
+        "neiPercent": neiPercent,         # no NEI
+        "percent": percent,
+        "details":results
+    }
