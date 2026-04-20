@@ -9,7 +9,7 @@ import torch
 from datasets import load_dataset
 
 device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
-model_id="MisaelProfessional/Robert_evidence"
+model_id="FatoumataDrammeh/myRoBERTa-FactVerificationModel"
 evidence_model= AutoModelForSequenceClassification.from_pretrained(model_id)
 evidence_tokenizer=AutoTokenizer.from_pretrained(model_id)
 evidence_model.to(device)

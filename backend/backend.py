@@ -17,7 +17,6 @@ def getEvidence(article, opinionOption):
         if sentence!='':
             df.append({"Claim": sentence})
 
-    
     for row in df:
         row["All Extracts"]=[]
         doc=nlp(row["Claim"])

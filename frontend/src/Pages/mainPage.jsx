@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { FaCircle, FaCheck, FaXmark } from "react-icons/fa6";
+import { FaCircle, FaCheck, FaXmark, FaInfo, FaCircleInfo} from "react-icons/fa6";
 
 const MainPage=()=>{
     const [wordCount, setCount]=useState(0)
@@ -14,16 +14,16 @@ const MainPage=()=>{
     const [refutes, setRefutes]=useState("--")
     const [notEI, setnotEI]=useState("--")
     const [testedText, setTestedText]=useState(["map1", "map2"])
-    const [percent, setPercent]=useState([12, 25])//placeholder. Do not change.
+    const [percent, setPercent]=useState([0, 0])
     const [includeOpinion, setOpinionOption]= useState(false)
     const index = model === "roberta" ? 0:1;
     const real_fake_model= model ==="distilbert"
     const gauge = real_fake_model ? (verifiable > refutes ? verifiable : refutes) : (percent[index] > rPercent[index] ? percent[index] : rPercent[index]) || 0;
     const [details,setDetails]=useState([]);
     useEffect(() => {
-        const real= parseFloat(vPercent?.[index])|| 0;
-        const fake = parseFloat(rPercent?.[index]) || 0;
-        if(real_fake_model){
+        const real= parseFloat(vPercent?.[index])|| '--';
+        const fake = parseFloat(rPercent?.[index]) || '--';
+        if(model=="distilbert"){
             setVerifiable(real);
             setRefutes(fake);
             setnotEI(0);
@@ -82,7 +82,9 @@ const MainPage=()=>{
         setCount(e.split(/\s+/).filter(Boolean).length);
     }
 
-    const loadSequence="loading, scanning stuff"
+    const loadSequence1= "Loading\u00A0text"
+    const loadSequence2= "Tokenizing"
+    const loadSequence3= "Running\u00A0Model"
     return(
         <div>
         <div class="text-white bg-[#eeebe4]  h-[150vh] md:h-[75vh] flex flex-col md:flex-row rounded-3xl w-9/10 m-auto mb-4">
@@ -113,12 +115,31 @@ const MainPage=()=>{
                     <div class="text-[#92999a]">{wordCount}/600</div>
                 </div>
             </div>
-            <div class=" bg-[#24afda] h-1/2 md:h-full md:w-1/2 border-t border-t-[#dddada] md:border-t-0 md:border-l md:border-l-[#dddada] p-5 md:mx-auto flex flex-col items-center justify-center gap-7 rounded-b-3xl md:rounded-r-3xl md:rounded-l-none">
+            <div class=" relative bg-[#24afda] h-1/2 md:h-full md:w-1/2 border-t border-t-[#dddada] md:border-t-0 md:border-l md:border-l-[#dddada] p-5 md:mx-auto flex flex-col items-center justify-center gap-7 rounded-b-3xl md:rounded-r-3xl md:rounded-l-none">
+            <div class="text-[#f8f4f4] text-2xl absolute right-0 top-0 m-2 group">
+                <FaCircleInfo class="hover:text-[#f5afa3]"/>
+                <div className=' bg-[#fafafa] text-black w-md absolute opacity-0  invisible transition duration-200 mr-0 right-0 z-50 text-sm rounded-2xl p-2 border-l-6 border-[#f12b2b] group-hover:opacity-100 group-hover:visible'>
+                    RoBERTA model: Trained on FEVER data.<br /> DistilBERT Model: Trained on Kaggle data.<br /> *Disclaimer: Not to be taken as fact. Trained models are not substitutes for humans. Please do your own research.*
+                    </div>
+            </div>
+
                 {loading? 
+                    <div class="text-xl">
+                    <div class="flex ">
+                        {loadSequence1.split("").map((letter, i) => 
+                            (<div key={i} className="loader" style={{ animationDelay: `${i * 0.05}s` }}>{letter}</div>)
+                        )}
+                    </div>
                     <div class="flex">
-                        {loadSequence.split("").map((letter, i) => (
-                            <div key={i} className="loader" style={{ animationDelay: `${i * 0.05}s` }}>{letter}</div>
-                        ))}
+                        {loadSequence2.split("").map((letter, i) => 
+                            (<div key={i} className="loader" style={{ animationDelay: `${i * 0.05}s` }}>{letter}</div>)
+                        )}
+                    </div>
+                    <div class="flex">
+                        {loadSequence3.split("").map((letter, i) => 
+                            (<div key={i} className="loader" style={{ animationDelay: `${i * 0.05}s` }}>{letter}</div>)
+                        )}
+                    </div>
                     </div>
                 :
                     <>
@@ -137,7 +158,9 @@ const MainPage=()=>{
                         </button>
                     </div>
         
-                    <div class="text-2xl">{real_fake_model ? (verifiable < refutes ? `${refutes}% chance this text is Fake` : `${verifiable}% chance this text is Real`) : (verifiable < refutes ? `${refutes}% chance this text is Refuted` : `${verifiable}% chance this text is Supported`)}</div>
+                    <div class="text-2xl">
+                        {real_fake_model ? (verifiable < refutes ? `${refutes}% chance this text is Fake` : `${verifiable}% chance this text is Real`) : 
+                        (verifiable < refutes ? `${refutes}% chance this text is Refuted` : `${verifiable}% chance this text is Supported`)}</div>
                     <div class="relative w-64 h-40 flex items-center justify-center">
                         <svg viewBox="0 0 200 120" class="w-full">
                             <path
@@ -151,7 +174,10 @@ const MainPage=()=>{
                             <path
                                 d="M 20 100 A 80 80 0 0 1 180 100"
                                 fill="none"
-                                stroke={verifiable > refutes ? "#5BA393" : "#f54d4d"}
+                                stroke={
+                                    verifiable > refutes ? "#5BA393" 
+                                    :verifiable <refutes ? "#f54d4d"
+                                    : "#ddd"}
                                 stroke-width="20"
                                 stroke-linecap="round"
                                 stroke-dasharray="251"
@@ -163,40 +189,36 @@ const MainPage=()=>{
                     </div>
 
                     <div class="text-lg w-[70%] flex flex-col gap-3">
-
-                        {!real_fake_model &&
-                        (<>
-                        {verifiable > refutes ? (
-                        <div class="flex items-center justify-between"> 
-                            <div class="flex items-center"><FaCircle class="mr-2 text-[#32c999] size-7  "></FaCircle>Supports</div> 
-                            <div>{verifiable}%</div>
-                        </div>) :
-                        (<div class="flex items-center justify-between"> 
-                            <div class="flex items-center"><FaCircle class="mr-2 text-[#f54d4d] size-7"></FaCircle>Refutes</div> 
-                            <div>{refutes}%</div>
-                        </div>)}
-                        </>)}
-                        
-
-                        {real_fake_model &&
-                        (<>
-                        {verifiable > refutes ? (
-                        <div class="flex items-center justify-between"> 
-                            <div class="flex items-center"><FaCircle class="mr-2 text-[#32c999] size-7  "></FaCircle>Real</div> 
-                            <div>{verifiable}%</div>
-                        </div>) :
-                        (<div class="flex items-center justify-between"> 
-                            <div class="flex items-center"><FaCircle class="mr-2 text-[#f54d4d] size-7"></FaCircle>Fake</div> 
-                            <div>{refutes}%</div>
-                        </div>)}
-                        </>)}
-
-                        {!real_fake_model && (notEI > 50) && (
-                        <div class="flex items-center justify-between"> 
-                            <div class="flex items-center"><FaCircle class="mr-2 text-[#f0bf1b] size-7"></FaCircle> Not Enough Info</div> 
-                            <div>{notEI}%</div>
+                        {model=="roberta" &&
+                        <>
+                            <div class="flex items-center justify-between"> 
+                                <div class="flex items-center"><FaCircle class="mr-2 text-[#32c999] size-7  "></FaCircle>Supports</div> 
+                                <div>{verifiable}%</div>
+                            </div>
+                            <div class="flex items-center justify-between"> 
+                                <div class="flex items-center"><FaCircle class="mr-2 text-[#f54d4d] size-7"></FaCircle>Refutes</div> 
+                                <div>{refutes}%</div>
+                            </div>
+                            <div class="flex items-center justify-between"> 
+                                <div class="flex items-center"><FaCircle class="mr-2 text-[#f0bf1b] size-7"></FaCircle> Not Enough Info</div> 
+                                <div>{notEI}%</div>
                         </div>
-                        )}
+                        </>
+                        }
+                        
+                        {model=="distilbert" &&
+                        <>
+                            <div class="flex items-center justify-between"> 
+                                <div class="flex items-center"><FaCircle class="mr-2 text-[#32c999] size-7  "></FaCircle>Real</div> 
+                                <div>{verifiable}%</div>
+                            </div>
+                            <div class="flex items-center justify-between"> 
+                                <div class="flex items-center"><FaCircle class="mr-2 text-[#f54d4d] size-7"></FaCircle>Fake</div> 
+                                <div>{refutes}%</div>
+                            </div>
+                        </>}
+
+                        
                     </div>
                     </>
                 }    
