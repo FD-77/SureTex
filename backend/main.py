@@ -7,7 +7,10 @@ from RoBERTa import run_roberta
 from transformers import AutoTokenizer, AutoModel
 from transformers import AutoModelForSequenceClassification
 from transformers import Trainer, TrainingArguments
+import uvicorn
+
 app= FastAPI()
+
 #frontend and backend run on different origins for local:host.
 #communication will be block unless we allow them to communicate
 origins=[    "http://localhost:3000", # Example for create-react-app
@@ -81,3 +84,6 @@ def begin(input:InputText):
         "percent": percent,
         "details":results
     }
+
+if __name__=="__main__":
+    uvicorn.run(app)
